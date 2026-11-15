@@ -1,0 +1,12 @@
+$kind: http-request
+id: 610cde84a2d7cd761c628793
+name: Update a todo
+method: PUT
+url: '{{baseUrl}}/api/todos/1'
+description: Update existing todo
+body:
+  type: json
+  content: '{title:Complete DevOps Assignment,description:Build, test and containerize the todo API,completed:true}'
+headers:
+  - key: Content-Type
+    value: application/json

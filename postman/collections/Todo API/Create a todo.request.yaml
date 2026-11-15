@@ -1,0 +1,12 @@
+$kind: http-request
+id: 284352f84cb926692a33349c
+name: Create a todo
+method: POST
+url: '{{baseUrl}}/api/todos'
+description: Create a new todo item
+body:
+  type: json
+  content: '{title:Complete DevOps Assignment,description:Build and test the todo API,completed:false}'
+headers:
+  - key: Content-Type
+    value: application/json

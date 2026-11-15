@@ -1,0 +1,6 @@
+$kind: http-request
+id: 0cc844318678c2fa554c1f12
+name: Get all todos
+method: GET
+url: '{{baseUrl}}/api/todos'
+description: Retrieve all todos

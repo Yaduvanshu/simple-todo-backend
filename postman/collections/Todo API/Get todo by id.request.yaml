@@ -1,0 +1,6 @@
+$kind: http-request
+id: b04b29447c844a42e54ab255
+name: Get todo by id
+method: GET
+url: '{{baseUrl}}/api/todos/1'
+description: Retrieve a todo by its identifier

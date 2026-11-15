@@ -1,0 +1,6 @@
+$kind: http-request
+id: 007764f13a26ca3ea2a64163
+name: Delete a todo
+method: DELETE
+url: '{{baseUrl}}/api/todos/1'
+description: Delete a todo by id

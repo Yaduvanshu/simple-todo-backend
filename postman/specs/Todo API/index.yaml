@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: Todo API
+  version: 1.0.0
+  description: ''
+servers:
+  - url: '{{baseUrl}}'
+paths:
+  /api/todos:
+    post:
+      summary: Create a todo
+      responses: {}
+      description: Create a new todo item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example: '{title:Complete DevOps Assignment,description:Build and test the todo API,completed:false}'
+    get:
+      summary: Get all todos
+      responses: {}
+      description: Retrieve all todos
+  /api/todos/1:
+    delete:
+      summary: Delete a todo
+      responses: {}
+      description: Delete a todo by id
+    get:
+      summary: Get todo by id
+      responses: {}
+      description: Retrieve a todo by its identifier
+    put:
+      summary: Update a todo
+      responses: {}
+      description: Update existing todo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+            example: '{title:Complete DevOps Assignment,description:Build, test and containerize the todo API,completed:true}'
+  /api/todos/1/toggle:
+    patch:
+      summary: Toggle todo status
+      responses: {}
+      description: Toggle completion status of a todo

@@ -1,0 +1,6 @@
+$kind: http-request
+id: 4e1f2462c41623499bee7c15
+name: Toggle todo status
+method: PATCH
+url: '{{baseUrl}}/api/todos/1/toggle'
+description: Toggle completion status of a todo
