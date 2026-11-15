@@ -40,6 +40,11 @@ paths:
             schema:
               type: object
             example: '{title:Complete DevOps Assignment,description:Build, test and containerize the todo API,completed:true}'
+  /:
+    get:
+      summary: Get root status
+      responses: {}
+      description: Check Root API status and available endpoints
   /api/todos/1/toggle:
     patch:
       summary: Toggle todo status

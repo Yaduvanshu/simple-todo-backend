@@ -16,6 +16,16 @@ class TodoServiceTest {
     @BeforeEach
     void setUp() {
         todoService = new TodoService();
+        todoService.clearAllTodos();
+    }
+
+    @Test
+    void testInitialDummyData() {
+        TodoService freshService = new TodoService();
+        List<Todo> initialTodos = freshService.getAllTodos();
+        assertEquals(3, initialTodos.size());
+        assertEquals("Learn Docker & Containerization", initialTodos.get(0).getTitle());
+        assertTrue(initialTodos.get(0).isCompleted());
     }
 
     @Test

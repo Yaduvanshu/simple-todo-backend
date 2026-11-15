@@ -18,6 +18,16 @@ public class TodoService {
     private final List<Todo> todos = new CopyOnWriteArrayList<>();
     private final AtomicLong idCounter = new AtomicLong(1);
 
+    public TodoService() {
+        initDummyData();
+    }
+
+    public void initDummyData() {
+        createTodo(new Todo(null, "Learn Docker & Containerization", "Understand images, containers, Dockerfile and compose", true));
+        createTodo(new Todo(null, "Setup CI/CD Pipeline", "Create GitHub Actions workflow for build and automated test", false));
+        createTodo(new Todo(null, "Deploy to Kubernetes", "Configure deployments, service, and ingress manifests", false));
+    }
+
     public List<Todo> getAllTodos() {
         return new ArrayList<>(todos);
     }

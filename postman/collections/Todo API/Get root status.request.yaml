@@ -1,0 +1,6 @@
+$kind: http-request
+id: c6f081115c278afdb9058aff
+name: Get root status
+method: GET
+url: '{{baseUrl}}/'
+description: Check Root API status and available endpoints
