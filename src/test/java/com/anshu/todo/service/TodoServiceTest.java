@@ -133,4 +133,34 @@ class TodoServiceTest {
         boolean deleteAgain = todoService.deleteTodo(created.getId());
         assertFalse(deleteAgain);
     }
+
+    @Test
+    void testSearchTodos() {
+        Todo t1 = new Todo(null, "Learn Docker", "Containers and images", true);
+        Todo t2 = new Todo(null, "CI/CD Setup", "GitHub Actions workflow", false);
+        Todo t3 = new Todo(null, "Spring Boot", "Build REST APIs with Spring", false);
+
+        todoService.createTodo(t1);
+        todoService.createTodo(t2);
+        todoService.createTodo(t3);
+
+        // Search by title match (case-insensitive)
+        List<Todo> dockerResults = todoService.searchTodos("docker");
+        assertEquals(1, dockerResults.size());
+        assertEquals("Learn Docker", dockerResults.get(0).getTitle());
+
+        // Search by description match
+        List<Todo> workflowResults = todoService.searchTodos("WORKFLOW");
+        assertEquals(1, workflowResults.size());
+        assertEquals("CI/CD Setup", workflowResults.get(0).getTitle());
+
+        // Search with no match
+        List<Todo> noResults = todoService.searchTodos("Kubernetes");
+        assertEquals(0, noResults.size());
+
+        // Search with empty or null keyword returns all
+        assertEquals(3, todoService.searchTodos("").size());
+        assertEquals(3, todoService.searchTodos(null).size());
+        assertEquals(3, todoService.searchTodos("   ").size());
+    }
 }

@@ -33,6 +33,21 @@ public class TodoController {
     }
 
     /**
+     * Search todos by keyword in title or description.
+     * GET /api/todos/search?keyword={keyword}
+     * GET /api/todos/search?query={query}
+     * GET /api/todos/search?q={q}
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<Todo>> searchTodos(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String q) {
+        String searchTerm = keyword != null ? keyword : (query != null ? query : q);
+        return ResponseEntity.ok(todoService.searchTodos(searchTerm));
+    }
+
+    /**
      * Get a specific todo by ID.
      * GET /api/todos/{id}
      */

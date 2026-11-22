@@ -181,4 +181,37 @@ class TodoControllerTest {
         mockMvc.perform(delete("/api/todos/99"))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void testSearchTodosWithKeyword() throws Exception {
+        Todo todo1 = new Todo(1L, "Learn Docker", "Understand images and containers", true);
+        when(todoService.searchTodos("docker")).thenReturn(List.of(todo1));
+
+        mockMvc.perform(get("/api/todos/search").param("keyword", "docker"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("Learn Docker"));
+    }
+
+    @Test
+    void testSearchTodosWithQueryParam() throws Exception {
+        Todo todo1 = new Todo(2L, "CI/CD Pipeline", "GitHub Actions workflow", false);
+        when(todoService.searchTodos("pipeline")).thenReturn(List.of(todo1));
+
+        mockMvc.perform(get("/api/todos/search").param("query", "pipeline"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].title").value("CI/CD Pipeline"));
+    }
+
+    @Test
+    void testSearchTodosEmptyKeyword() throws Exception {
+        Todo todo1 = new Todo(1L, "Task 1", "Desc 1", false);
+        Todo todo2 = new Todo(2L, "Task 2", "Desc 2", true);
+        when(todoService.searchTodos(null)).thenReturn(List.of(todo1, todo2));
+
+        mockMvc.perform(get("/api/todos/search"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
 }

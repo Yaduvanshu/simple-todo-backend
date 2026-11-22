@@ -22,6 +22,7 @@ public class RootController {
         response.put("timestamp", LocalDateTime.now());
         response.put("endpoints", Map.of(
                 "todos", "/api/todos",
+                "search_todos", "/api/todos/search",
                 "actuator_health", "/actuator/health"
         ));
         return ResponseEntity.ok(response);

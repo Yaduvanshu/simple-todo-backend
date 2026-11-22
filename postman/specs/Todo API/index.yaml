@@ -21,6 +21,22 @@ paths:
       summary: Get all todos
       responses: {}
       description: Retrieve all todos
+  /api/todos/search:
+    get:
+      summary: Search todos
+      responses: {}
+      description: Search todos by keyword in title or description
+      parameters:
+        - name: keyword
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: query
+          in: query
+          required: false
+          schema:
+            type: string
   /api/todos/1:
     delete:
       summary: Delete a todo

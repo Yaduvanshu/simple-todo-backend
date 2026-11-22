@@ -44,6 +44,18 @@ public class TodoService {
                 .collect(Collectors.toList());
     }
 
+    public List<Todo> searchTodos(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllTodos();
+        }
+        String lowerKeyword = keyword.trim().toLowerCase();
+        return todos.stream()
+                .filter(todo ->
+                        (todo.getTitle() != null && todo.getTitle().toLowerCase().contains(lowerKeyword)) ||
+                        (todo.getDescription() != null && todo.getDescription().toLowerCase().contains(lowerKeyword)))
+                .collect(Collectors.toList());
+    }
+
     public Todo createTodo(Todo todo) {
         long nextId = idCounter.getAndIncrement();
         todo.setId(nextId);

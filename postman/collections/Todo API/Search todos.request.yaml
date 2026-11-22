@@ -1,0 +1,6 @@
+$kind: http-request
+id: 5a8e1b2c3d4f5061728394a5
+name: Search todos
+method: GET
+url: '{{baseUrl}}/api/todos/search?keyword=Docker'
+description: Search todos by keyword in title or description
