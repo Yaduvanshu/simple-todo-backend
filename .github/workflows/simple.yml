@@ -20,4 +20,5 @@ jobs:
       - name: step3 
         run: | 
           echo "Name of the dockerhub user name ${{ vars.DOCKERHUB_USERNAME }}" 
-          echo "Name of the EC2 username ${{ vars.EC2_USERNAME }}"
+          echo "Name of the EC2 username ${{ vars.EC2_USERNAME }}" 
+          echo "Repository name is ${{ github.repository }}"
