@@ -1,0 +1,71 @@
+/* Custom UI transitions and utilities for TaskFlow Todo App */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in {
+    animation: slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Scrollbar - Light */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Custom Scrollbar - Dark */
+html.dark ::-webkit-scrollbar-thumb {
+    background: #475569;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+}
+
+/* Modal backdrop fade */
+.modal-backdrop {
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* Checkbox smooth checkmark animation */
+.todo-checkbox:checked + .checkbox-custom {
+    background-color: #10b981;
+    border-color: #10b981;
+}
+
+.todo-checkbox:checked + .checkbox-custom svg {
+    opacity: 1;
+    transform: scale(1);
+}

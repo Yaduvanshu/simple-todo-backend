@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — Clean & Simple Todo App</title>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Anti-Flash Dark Mode Script -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+    </script>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/app.css}" href="/css/app.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-brand-100 dark:selection:bg-brand-900 selection:text-brand-700 dark:selection:text-brand-200 transition-colors duration-200">
+
+    <!-- Top Toast Notification Container -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+    <!-- Main Container -->
+    <div class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col">
+
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">TaskFlow</h1>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Keep your tasks focused, clear, and done.</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap">
+                <!-- API Connection Badge -->
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/60 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>API Connected</span>
+                </div>
+
+                <!-- Current Date -->
+                <div id="current-date" class="text-xs font-medium text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                    Today
+                </div>
+
+                <!-- Theme Toggle Button -->
+                <button
+                    type="button"
+                    id="theme-toggle-btn"
+                    class="p-2 rounded-xl border border-slate-200/80 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-brand-600 dark:hover:text-brand-400 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    title="Toggle dark / light theme"
+                    aria-label="Toggle theme"
+                >
+                    <!-- Sun icon (shown in dark mode) -->
+                    <svg id="theme-icon-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <!-- Moon icon (shown in light mode) -->
+                    <svg id="theme-icon-moon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Overview Cards -->
+        <section class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <!-- Total Tasks -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between transition-colors">
+                <div>
+                    <p class="text-xs font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Total Tasks</p>
+                    <p id="stat-total" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1" th:text="${totalCount ?: 0}">0</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-slate-100 dark:bg-slate-700/60 flex items-center justify-center text-slate-600 dark:text-slate-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Active / Pending Tasks -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between transition-colors">
+                <div>
+                    <p class="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider">In Progress</p>
+                    <p id="stat-active" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1" th:text="${pendingCount ?: 0}">0</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Completed Tasks -->
+            <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm flex items-center justify-between transition-colors">
+                <div>
+                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Completed</p>
+                    <p id="stat-completed" class="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white mt-1" th:text="${completedCount ?: 0}">0</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Bar -->
+        <div class="bg-white dark:bg-slate-800 px-5 py-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm mb-8 flex flex-col gap-2 transition-colors">
+            <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <span>Task Completion</span>
+                <span id="stat-progress-percent" class="text-brand-600 dark:text-brand-400 font-bold">0%</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
+                <div id="stat-progress-bar" class="bg-gradient-to-r from-brand-500 to-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Add Task Card -->
+        <section class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm mb-8 transition-colors">
+            <h2 class="text-base font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Add New Task</span>
+            </h2>
+
+            <form id="todo-form" class="space-y-4">
+                <div>
+                    <label for="todo-title-input" class="sr-only">Task Title</label>
+                    <input
+                        type="text"
+                        id="todo-title-input"
+                        placeholder="What needs to be done? (Required)"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm font-medium"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label for="todo-desc-input" class="sr-only">Task Description</label>
+                    <input
+                        type="text"
+                        id="todo-desc-input"
+                        placeholder="Add details, notes, or tags (Optional)"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all text-sm"
+                    />
+                </div>
+
+                <div class="flex items-center justify-between pt-1">
+                    <span class="text-xs text-slate-400 dark:text-slate-500 hidden sm:inline-block">
+                        Tip: Press <kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">Enter</kbd> to add, <kbd class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600">/</kbd> to search
+                    </span>
+                    <button
+                        type="submit"
+                        id="add-todo-btn"
+                        class="ml-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-brand-600 hover:bg-brand-700 active:scale-95 transition-all shadow-sm shadow-brand-500/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <span>Add Task</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Search and Filter Bar -->
+        <section class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6">
+            <!-- Filter Pills -->
+            <div class="flex items-center gap-1.5 bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-sm overflow-x-auto transition-colors">
+                <button
+                    type="button"
+                    id="filter-all"
+                    class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 bg-brand-600 text-white shadow-sm flex items-center gap-2"
+                >
+                    <span>All</span>
+                    <span id="filter-all-badge" class="px-1.5 py-0.5 rounded-full text-xs bg-white/20 text-white" th:text="${totalCount ?: 0}">0</span>
+                </button>
+                <button
+                    type="button"
+                    id="filter-active"
+                    class="filter-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2"
+                >
+                    <span>Active</span>
+                    <span id="filter-active-badge" class="px-1.5 py-0.5 rounded-full text-xs bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200" th:text="${pendingCount ?: 0}">0</span>
+                </button>
+                <button
+                    type="button"
+                    id="filter-completed"
+                    class="filter-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 bg-slate-100 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center gap-2"
+                >
+                    <span>Completed</span>
+                    <span id="filter-completed-badge" class="px-1.5 py-0.5 rounded-full text-xs bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200" th:text="${completedCount ?: 0}">0</span>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="relative flex-1 sm:max-w-xs">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Search tasks... (Press /)"
+                    class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200/90 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 text-sm transition-all shadow-sm"
+                />
+                <button
+                    type="button"
+                    id="clear-search-btn"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 hidden"
+                    title="Clear search"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </section>
+
+        <!-- Todo Items List -->
+        <main class="flex-1">
+            <ul id="todo-list" class="space-y-3">
+                <!-- Server-Side Rendered Fallback (Hydrated by JS) -->
+                <li th:each="todo : ${todos}"
+                    th:data-id="${todo.id}"
+                    class="group flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border transition-all duration-200 bg-white dark:bg-slate-800 hover:shadow-md animate-fade-in"
+                    th:classappend="${todo.completed} ? 'border-emerald-100/80 dark:border-emerald-950/60 bg-slate-50/50 dark:bg-slate-800/40' : 'border-slate-200/90 dark:border-slate-700/90 shadow-sm hover:border-brand-200 dark:hover:border-brand-500/50'">
+                    <div class="flex items-start gap-3.5 flex-1 min-w-0 pr-3">
+                        <button type="button"
+                                class="toggle-btn mt-0.5 w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 border-2 transition-all duration-200"
+                                th:classappend="${todo.completed} ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 dark:border-slate-600 hover:border-brand-500 bg-white dark:bg-slate-800'"
+                                aria-label="Toggle task status">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </button>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="todo-title text-base sm:text-lg break-words"
+                                      th:classappend="${todo.completed} ? 'line-through text-slate-400 dark:text-slate-500 font-normal' : 'text-slate-800 dark:text-slate-100 font-semibold'"
+                                      th:text="${todo.title}">
+                                    Task Title
+                                </span>
+                                <span th:if="${todo.completed}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">Done</span>
+                                <span th:unless="${todo.completed}" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300">Pending</span>
+                            </div>
+                            <p th:if="${todo.description != null and !todo.description.empty}"
+                               class="todo-desc text-sm mt-1 break-words"
+                               th:classappend="${todo.completed} ? 'line-through text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'"
+                               th:text="${todo.description}">
+                                Task description
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1.5 self-end sm:self-center mt-3 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-700 w-full sm:w-auto justify-end">
+                        <button type="button" class="edit-btn p-2 rounded-xl text-slate-400 dark:text-slate-500 hover:text-brand-600 dark:hover:text-brand-400 hover:bg-brand-50/80 dark:hover:bg-brand-950/50 transition-colors" title="Edit Task">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                        </button>
+                        <button type="button" class="delete-btn p-2 rounded-xl text-slate-400 dark:text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50/80 dark:hover:bg-rose-950/50 transition-colors" title="Delete Task">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="hidden flex-col items-center justify-center p-12 text-center bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 mt-4 transition-colors">
+                <div class="w-16 h-16 rounded-2xl bg-brand-50 dark:bg-brand-950/50 text-brand-600 dark:text-brand-400 flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <h3 id="empty-state-title" class="text-base font-semibold text-slate-800 dark:text-slate-100">No tasks yet</h3>
+                <p id="empty-state-desc" class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm">Add your first task above to get started organizing your day.</p>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 pt-6 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 dark:text-slate-500 gap-2">
+            <div>
+                <span>TaskFlow &bull; Powered by Spring Boot & Thymeleaf</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/api" target="_blank" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">API Status</a>
+                <span>&bull;</span>
+                <a href="/api/todos" target="_blank" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">JSON Endpoint</a>
+                <span>&bull;</span>
+                <a href="/actuator/health" target="_blank" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Health</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="edit-modal" class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-lg w-full p-6 animate-fade-in transition-colors">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-700">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    <span>Edit Task</span>
+                </h3>
+                <button type="button" id="close-modal-btn" class="text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 p-1 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form id="edit-modal-form" class="mt-4 space-y-4">
+                <div>
+                    <label for="edit-title-input" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Title</label>
+                    <input
+                        type="text"
+                        id="edit-title-input"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm font-medium"
+                        required
+                    />
+                </div>
+
+                <div>
+                    <label for="edit-desc-input" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase mb-1.5">Description</label>
+                    <textarea
+                        id="edit-desc-input"
+                        rows="3"
+                        class="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+                        placeholder="Add notes..."
+                    ></textarea>
+                </div>
+
+                <div class="flex items-center gap-3 pt-1">
+                    <input
+                        type="checkbox"
+                        id="edit-completed-checkbox"
+                        class="w-4 h-4 text-emerald-600 border-slate-300 dark:border-slate-600 rounded focus:ring-emerald-500 bg-white dark:bg-slate-800"
+                    />
+                    <label for="edit-completed-checkbox" class="text-sm font-medium text-slate-700 dark:text-slate-300 select-none">
+                        Mark task as completed
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
+                    <button
+                        type="button"
+                        id="cancel-modal-btn"
+                        class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        class="px-5 py-2 rounded-xl text-sm font-semibold text-white bg-brand-600 hover:bg-brand-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-brand-500"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Plain JavaScript App -->
+    <script th:src="@{/js/app.js}" src="/js/app.js"></script>
+</body>
+</html>
